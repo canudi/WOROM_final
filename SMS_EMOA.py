@@ -33,13 +33,11 @@ def select(gen, f_vals, mu, v):
         return selected, np.inf         # let SMS-EMOA continue with selected as next generation
 
     # second criteria - use hyper-volume
-    r = 2 * np.max(f_vals, axis=0)     # the worst solutions sample is twice the worst solution found
-    contribution, hv = hyper_volume(f_vals[ranks == min_rank], mu - selected.shape[0], r)
+    r = np.max(f_vals, axis=0) + 1     # the worst solutions sample is twice the worst solution found
+    # maybe we need to work with pandas to keep track with the indices
+    most_contributing, hv = hyper_volume(f_vals[ranks == min_rank], mu - selected.shape[0], r)
     selected = np.concatenate((selected,
-                               (gen[ranks == min_rank])
-                               [np.argsort(contribution)[-(mu - selected.shape[0]):]]))
-    if min_rank == 0:
-        return selected, 0
+                               (gen[ranks == min_rank])[most_contributing]))
     return selected, v - hv, hv
     # for objective_func in range(f_vals.shape[1]):
     #     next_gen = next_gen.sort(key=lambda x: x[1][objective_func])
@@ -54,11 +52,16 @@ def hyper_volume(f_vals, mu, r):
     :return:        the contribution (with - without) of each individual        - ndarray.
     """
     # abs_vals, abs_r = np.abs(f_vals), np.abs(r)
-    ribs = np.abs(f_vals - r)               # ribs is a matrix of the ribs of each box
-    box_volumes = np.prod(ribs, axis=1)     # d=1
-    without = np.array([np.sum(np.delete(box_volumes), i, axis=0) for i in range(box_volumes.shape[0])])
-    most_contributing = np.argsort(np.sum(box_volumes) - without)[-mu:]
-    volume = np.sum(box_volumes[most_contributing])
+    if f_vals.shape[1] == 2:
+        # todo
+    elif f_vals.shape[1] == 3:
+        # todo
+
+    # ribs = np.abs(f_vals - r)               # ribs is a matrix of the ribs of each box
+    # box_volumes = np.prod(ribs, axis=1)     # d=1
+    # without = np.array([np.sum(np.delete(box_volumes), i, axis=0) for i in range(box_volumes.shape[0])])
+    # most_contributing = np.argsort(np.sum(box_volumes) - without)[-mu:]
+    # volume = np.sum(box_volumes[most_contributing])
     return most_contributing, volume
 
 def select_mates(pop, f_vals):
@@ -118,3 +121,5 @@ def SMS_EMOA(init_pop, F, mu, sigma, epsilon=1e-3):
         gen, improve, v = select(np.concatenate((gen, next_gen), axis=0),
                                  np.concatenate((f_vals, nf_vals), axis=0), mu, v)
     return gen
+
+    # np.abs(current_v - new_v) > epsilon
