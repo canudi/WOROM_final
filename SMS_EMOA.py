@@ -33,14 +33,38 @@ def select(gen, f_vals, mu, v):
         return selected, np.inf         # let SMS-EMOA continue with selected as next generation
 
     # second criteria - use hyper-volume
+<<<<<<< HEAD
     r = np.max(f_vals, axis=0) + 1     # the worst solutions sample is twice the worst solution found
     # maybe we need to work with pandas to keep track with the indices
     most_contributing, hv = hyper_volume(f_vals[ranks == min_rank], mu - selected.shape[0], r)
+=======
+    r = 1 + np.max(f_vals, axis=0)     # the worst solutions sample is twice the worst solution found
+    contribution, hv = hyper_volume(f_vals[ranks == min_rank], mu - selected.shape[0], r)
+>>>>>>> origin/master
     selected = np.concatenate((selected,
                                (gen[ranks == min_rank])[most_contributing]))
     return selected, v - hv, hv
     # for objective_func in range(f_vals.shape[1]):
     #     next_gen = next_gen.sort(key=lambda x: x[1][objective_func])
+
+
+def calc_volume_2D(f_vals, mu, r):
+    volumes = np.zeros(f_vals.shape[0])
+
+    # calculate the contribution of the first axis
+    f1_sorted = np.copy(f_vals.sort(key=lambda x: x[0]))
+    for i in range(f_vals.shape[0] - 1):
+        volumes[f_vals.index(f1_sorted[i])] = f1_sorted[i + 1][0] - f1_sorted[i][0]
+    volumes[f_vals.index(f1_sorted[-1])] = r[0] - f1_sorted[-1][0]
+
+    # calculate the contribution of the second axis (and the area)
+    f2_sorted = np.copy(f_vals.sort(key=lambda x: x[1]))
+    for i in range(f_vals.shape[0] - 1):
+        volumes[f_vals.index(f1_sorted[i])] *= f2_sorted[i + 1][1] - f1_sorted[i][1]
+    volumes[f_vals.index(f1_sorted[-1])] *= r[1] - f1_sorted[-1][1]
+
+    return volumes, np.sum(volumes) # the volumes array is indexed as the f_vals array -> fvals[0] contributes volumes[0]
+
 
 
 def hyper_volume(f_vals, mu, r):
