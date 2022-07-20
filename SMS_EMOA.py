@@ -64,6 +64,7 @@ def hyper_volume(f_vals, mu, r):
     # volume = np.sum(box_volumes[most_contributing])
     return most_contributing, volume
 
+
 def select_mates(pop, f_vals):
     """
     todo
@@ -72,6 +73,8 @@ def select_mates(pop, f_vals):
     :param f_vals:  m objective functions values for each of the n individuals  - ndarray.
     :return:        (x1, x2) - tuple of selected individuals to mate.
     """
+    norm_f = (f_vals - f_vals.min(axis=0)) / np.sum(f_vals, axis=0) - f_vals.min(axis=0)
+
 
 
 def recombine(x1, x2):
