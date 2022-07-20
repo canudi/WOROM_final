@@ -33,14 +33,14 @@ def select(gen, f_vals, mu, v):
         return selected, np.inf         # let SMS-EMOA continue with selected as next generation
 
     # second criteria - use hyper-volume
-<<<<<<< HEAD
+# <<<<<<< HEAD
     r = np.max(f_vals, axis=0) + 1     # the worst solutions sample is twice the worst solution found
     # maybe we need to work with pandas to keep track with the indices
     most_contributing, hv = hyper_volume(f_vals[ranks == min_rank], mu - selected.shape[0], r)
-=======
+# =======
     r = 1 + np.max(f_vals, axis=0)     # the worst solutions sample is twice the worst solution found
     contribution, hv = hyper_volume(f_vals[ranks == min_rank], mu - selected.shape[0], r)
->>>>>>> origin/master
+# >>>>>>> origin/master
     selected = np.concatenate((selected,
                                (gen[ranks == min_rank])[most_contributing]))
     return selected, v - hv, hv
