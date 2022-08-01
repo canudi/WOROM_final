@@ -1,3 +1,4 @@
+import cplex
 from docplex.mp.model import Model
 import numpy as np
 
@@ -8,34 +9,32 @@ def initialize_points(d):
     return list_of_points
 
 
-def CPLEX(F, set_of_points, list_of_y, alphaW):
+def CPLEX(F, set_of_points, list_of_y, alphaW, x_dim):
     m = Model(name="DMA")
     numObjective = len(F)
     rObjective = range(numObjective)
     n = len(set_of_points)
 
     alpha = m.continuous_var(name='alpha', lb=0)
+    x = m.continuous_var_list(range(x_dim), name='x', lb=0)
+    y = m.continuous_var_list(rObjective, name='y', lb=0)
 
-    x = m.continuous_var(name='x', lb=0) #adjust the right dim
-
-    y = [f(x) for f in F]
+    for o in rObjective:
+        c0 = m.add_constraint(y[o] == F[o](x))
 
     c1 = m.add_constraint(alpha == max([min([y[i] - list_of_y[j][i] for i in rObjective]) for j in range(n)]), ctname='const1')
     m.set_objective("max", alpha * alphaW - sum(y))
     sol = m.solve()
-    print(sol.objective_value)
-    print(x)
-    print(y)
 
-    return x, y
+    return sol.get_var_value(x), sol.get_var_value(y)
 
 
-def f1(x):
-    return np.dot(x.T, x)
+def f1(X):
+    return sum([x ** 2 for x in X])
 
 
-def f2(x):
-    return np.dot(x.T - 1, x - 1)
+def f2(X):
+    return sum([(x - 1) ** 2 for x in X])
 
 
 def main():
@@ -52,7 +51,7 @@ def main():
                 alphaW = max(alphaW, list_of_y[i][k] - list_of_y[j][k])
 
     while len(list_of_points) < max_num_of_points: # while not terminate
-        x, y = CPLEX(F, list_of_points, list_of_y, alphaW)
+        x, y = CPLEX(F, list_of_points, list_of_y, alphaW, d)
         list_of_points.append(x)
         list_of_y.append(y)
 
